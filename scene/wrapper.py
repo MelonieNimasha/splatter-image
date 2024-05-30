@@ -1,7 +1,4 @@
 
-
-
-
 import sys
 sys.path.append('/home/melonie/gaussian-splatting')
 
