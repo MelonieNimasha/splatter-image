@@ -10,7 +10,7 @@ def get_dataset(cfg, name, overfit=None, val = False):
         return SRNDataset(cfg, name)
 
     elif cfg.data.category == "objaverse" or cfg.data.category == "*" or cfg.data.category == "realestate":
-        if cfg.data.category == "realestate"
+        if cfg.data.category == "realestate":
             re10k = True
         else:
             re10k = False
@@ -30,7 +30,7 @@ def get_dataset(cfg, name, overfit=None, val = False):
                 crop_augmentation_min_scale=cfg.crop_augmentation_min_scale,
                 crop_augmentation_max_shift=cfg.crop_augmentation_max_shift,
                 overfit=overfit,
-                re10k = re10k
+                re10k = re10k,
             )
         else:
             original_dataset = ColmapDataset(
@@ -46,7 +46,7 @@ def get_dataset(cfg, name, overfit=None, val = False):
                 crop_augmentation_min_scale=cfg.crop_augmentation_min_scale,
                 crop_augmentation_max_shift=cfg.crop_augmentation_max_shift,
                 overfit=overfit,
-                re10k= False
+                re10k= False,
             )
         
         if val and cfg.data.category == "*":
