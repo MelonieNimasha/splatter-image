@@ -116,21 +116,22 @@ def main(cfg: DictConfig):
     background = torch.tensor(bg_color, dtype=torch.float32, device=device)
 
     dataset = get_dataset(cfg, "train")
+
     dataloader = DataLoader(dataset, 
                             batch_size=cfg.opt.batch_size,
                             shuffle=True)
 
-    val_dataset = get_dataset(cfg, "val")
+    val_dataset = get_dataset(cfg, "val", 16, val = True)
     val_dataloader = DataLoader(val_dataset, 
-                                batch_size=1,
+                                batch_size=16,
                                 shuffle=False,
                                 num_workers=1,
                                 persistent_workers=True,
                                 pin_memory=True)
 
-    test_dataset = get_dataset(cfg, "test")
+    test_dataset = get_dataset(cfg, "val", 16, val = True)
     test_dataloader = DataLoader(test_dataset, 
-                                 batch_size=1,
+                                 batch_size=16,
                                  shuffle=True)
     gaussian_predictor.train()
 
@@ -153,11 +154,12 @@ def main(cfg: DictConfig):
 
         rot_transform_quats = data["source_cv2wT_quat"][:, :cfg.data.input_images]
 
-        if cfg.data.category == "hydrants" or cfg.data.category == "teddybears":
+        if cfg.data.category == "hydrants" or cfg.data.category == "teddybears" or cfg.data.category =="*" or cfg.data.category =="realestate":
             focals_pixels_pred = data["focals_pixels"][:, :cfg.data.input_images, ...]
             input_images = torch.cat([data["gt_images"][:, :cfg.data.input_images, ...],
                             data["origin_distances"][:, :cfg.data.input_images, ...]],
                             dim=2)
+
         else:
             focals_pixels_pred = None
             input_images = data["gt_images"][:, :cfg.data.input_images, ...]
@@ -168,7 +170,7 @@ def main(cfg: DictConfig):
                                              focals_pixels_pred)
 
 
-        if cfg.data.category == "hydrants" or cfg.data.category == "teddybears":
+        if cfg.data.category == "hydrants" or cfg.data.category == "teddybears" or cfg.data.category =="*" or cfg.data.category =="realestate":
             # regularize very big gaussians
             if len(torch.where(gaussian_splats["scaling"] > 20)[0]) > 0:
                 big_gaussian_reg_loss = torch.mean(
@@ -185,6 +187,7 @@ def main(cfg: DictConfig):
                     len(torch.where(gaussian_splats["scaling"] < 1e-5)[0]), iteration))
             else:
                 small_gaussian_reg_loss = 0.0
+
         # Render
         l12_loss_sum = 0.0
         lpips_loss_sum = 0.0
@@ -221,7 +224,7 @@ def main(cfg: DictConfig):
                 )
 
         total_loss = l12_loss_sum * lambda_l12 + lpips_loss_sum * lambda_lpips
-        if cfg.data.category == "hydrants" or cfg.data.category == "teddybears":
+        if cfg.data.category == "hydrants" or cfg.data.category == "teddybears" or cfg.data.category =="*" or cfg.data.category =="realestate":
             total_loss = total_loss + big_gaussian_reg_loss + small_gaussian_reg_loss
 
         total_loss.backward()
@@ -248,7 +251,7 @@ def main(cfg: DictConfig):
                         wandb.log({"training_lpips_loss": np.log10(lpips_loss_sum.item() + 1e-8)}, step=iteration)
                     else:
                         wandb.log({"training_lpips_loss": np.log10(lpips_loss_sum + 1e-8)}, step=iteration)
-                if cfg.data.category == "hydrants" or cfg.data.category == "teddybears":
+                if cfg.data.category == "hydrants" or cfg.data.category == "teddybears" or cfg.data.category =="*" or cfg.data.category =="realestate":
                     if type(big_gaussian_reg_loss) == float:
                         brl_for_log = big_gaussian_reg_loss
                     else:
@@ -270,11 +273,12 @@ def main(cfg: DictConfig):
 
                 rot_transform_quats = vis_data["source_cv2wT_quat"][:, :cfg.data.input_images]
 
-                if cfg.data.category == "hydrants" or cfg.data.category == "teddybears":
+                if cfg.data.category == "hydrants" or cfg.data.category == "teddybears" or cfg.data.category =="*" or cfg.data.category =="realestate":
                     focals_pixels_pred = vis_data["focals_pixels"][:, :cfg.data.input_images, ...]
                     input_images = torch.cat([vis_data["gt_images"][:, :cfg.data.input_images, ...],
                                               vis_data["origin_distances"][:, :cfg.data.input_images, ...]],
                                               dim=2)
+
                 else:
                     focals_pixels_pred = None
                     input_images = vis_data["gt_images"][:, :cfg.data.input_images, ...]
@@ -301,10 +305,10 @@ def main(cfg: DictConfig):
                                          focals_pixels=focals_pixels_render)["render"]
                     test_loop_gt.append((np.clip(vis_data["gt_images"][0, r_idx].detach().cpu().numpy(), 0, 1)*255).astype(np.uint8))
                     test_loop.append((np.clip(test_image.detach().cpu().numpy(), 0, 1)*255).astype(np.uint8))
-    
-                wandb.log({"rot": wandb.Video(np.asarray(test_loop), fps=20, format="mp4")},
+
+                wandb.log({"rot": wandb.Video(np.asarray(test_loop))},
                     step=iteration)
-                wandb.log({"rot_gt": wandb.Video(np.asarray(test_loop_gt), fps=20, format="mp4")},
+                wandb.log({"rot_gt": wandb.Video(np.asarray(test_loop_gt))},
                     step=iteration)
 
         fnames_to_save = []

@@ -9,7 +9,7 @@ from .dataset_readers import readCamerasFromTxt
 from utils.general_utils import PILtoTorch, matrix_to_quaternion
 from utils.graphics_utils import getWorld2View2, getProjectionMatrix, getView2World
 
-SHAPENET_DATASET_ROOT = None # Change this to your data directory
+SHAPENET_DATASET_ROOT = "/scratch/melonie" # Change this to your data directory
 assert SHAPENET_DATASET_ROOT is not None, "Update the location of the SRN Shapenet Dataset"
 
 class SRNDataset(Dataset):
@@ -21,8 +21,8 @@ class SRNDataset(Dataset):
 
         self.base_path = os.path.join(SHAPENET_DATASET_ROOT, "srn_{}/{}_{}".format(cfg.data.category,
                                                                               cfg.data.category,
-                                                                              cfg.data.category,
                                                                               dataset_name))
+
 
         is_chair = "chair" in cfg.data.category
         if is_chair and dataset_name == "train":

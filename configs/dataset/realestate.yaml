@@ -1,0 +1,14 @@
+# @package _global_
+data:
+  znear: 10.0
+  zfar: 0.01
+  category: "realestate"
+  white_background: false
+  origin_distances: true
+
+dataset_dir: /scratch/melonie/re10k
+dataset_suffix: 256/converted
+
+general:
+  device: 0
+

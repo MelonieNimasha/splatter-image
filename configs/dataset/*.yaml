@@ -1,0 +1,13 @@
+# @package _global_
+data:
+  znear: 10.0
+  zfar: 0.01
+  category: "*"
+  white_background: false
+  origin_distances: true
+
+
+general:
+  device: 1
+
+

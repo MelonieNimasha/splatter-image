@@ -696,7 +696,7 @@ class GaussianSplatPredictor(nn.Module):
         # expands ray dirs along the batch dimension
         # adjust ray directions according to fov if not done already
         ray_dirs_xy = self.ray_dirs.expand(depth_network.shape[0], 3, *self.ray_dirs.shape[2:])
-        if self.cfg.data.category != "cars" and self.cfg.data.category != "chairs":
+        if self.cfg.data.category != "cars" and self.cfg.data.category != "chairs" and self.cfg.data.category != "objaverse" :
             assert torch.all(focals_pixels > 0)
             ray_dirs_xy = ray_dirs_xy.clone()
             ray_dirs_xy[:, :2, ...] = ray_dirs_xy[:, :2, ...] / focals_pixels.unsqueeze(2).unsqueeze(3)
@@ -708,6 +708,7 @@ class GaussianSplatPredictor(nn.Module):
             depth = self.depth_act(depth_network) * (self.cfg.data.zfar - self.cfg.data.znear) + self.cfg.data.znear
 
         pos = ray_dirs_xy * depth + offset
+        # pos = ray_dirs_xy * depth 
 
         return pos
 
@@ -731,10 +732,12 @@ class GaussianSplatPredictor(nn.Module):
         else:
             film_camera_emb = None
 
-        if self.cfg.data.category == "cars" or self.cfg.data.category == "chairs":
+        if self.cfg.data.category == "cars" or self.cfg.data.category == "chairs" or self.cfg.data.category == "objaverse":
             assert focals_pixels is None, "Unexpected argument for srn dataset"
+                    
         else:
             assert focals_pixels is not None
+
             focals_pixels = focals_pixels.reshape(B*N_views, *focals_pixels.shape[2:])
 
         x = x.reshape(B*N_views, *x.shape[2:])
